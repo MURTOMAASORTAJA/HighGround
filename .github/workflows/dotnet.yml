@@ -31,7 +31,8 @@ jobs:
         # MongoDB version to use (default "latest")
         mongodb-version: latest
         mongodb-port: 27017
-        mongodb-root-username: testuser
-        mongodb-root-password: TestPa5s!k
+        mongodb-username: testuser
+        mongodb-password: TestPa5s!k
+        mongodb-db: ugtest
     - name: Test
       run: dotnet test --no-build --verbosity normal
