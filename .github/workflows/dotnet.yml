@@ -33,6 +33,10 @@ jobs:
         mongodb-username: testuser
         mongodb-password: TestPa5s!k
         mongodb-db: ugtest
+    - name: Wait / Sleep
+      uses: jakejarvis/wait-action@v0.1.1
+      with:
+        time: 5s
     - name: Create Mongodb user
       run: mongo admin --tls --eval "db.createUser({user:'testuser',pwd:'TestPa5s!k',roles:[{role:'readwrite',db:'ugtest'}]})"
     - name: Run tests
