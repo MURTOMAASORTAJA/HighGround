@@ -25,19 +25,18 @@ jobs:
     - name: Build solution
       run: dotnet build --no-restore
     - name: Start MongoDB server
-    # You may pin to the exact commit or the version.
       uses: supercharge/mongodb-github-action@1.8.0
       with:
         mongodb-version: latest
         mongodb-port: 27017
-        mongodb-username: testuser
-        mongodb-password: TestPa5s!k
+        #mongodb-username: testuser
+        #mongodb-password: TestPa5s!k
         mongodb-db: ugtest
     - name: Wait / Sleep
       uses: jakejarvis/wait-action@v0.1.1
       with:
         time: 5s
     - name: Create Mongodb user
-      run: mongo admin --tls --eval "db.createUser({user:'testuser',pwd:'TestPa5s!k',roles:[{role:'readwrite',db:'ugtest'}]})"
+      run: mongo admin --eval "db.createUser({user:'testuser',pwd:'TestPa5s!k',roles:[{role:'readwrite',db:'ugtest'}]})"
     - name: Run tests
       run: dotnet test --no-build --verbosity normal
