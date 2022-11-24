@@ -1,4 +1,5 @@
-﻿using Data.Models;
+﻿using Data.Internals;
+using Data.Models;
 using Data.Models.Event;
 using Data.Models.Work;
 using HighGround;
@@ -11,23 +12,43 @@ namespace DatabaseConnectionTests
     public class DatabaseConnectionTests
     {
         private MongoClient _client;
-        private IConfiguration _conf;
+        private DatabaseSettings _settings;
 
         [SetUp]
         public void Setup()
         {
-            var confBuilder = new ConfigurationBuilder();
-            confBuilder.AddJsonFile("appsettings.json", true);
-            confBuilder.AddUserSecrets<DatabaseConnectionTests>();
-            _conf = confBuilder.Build();
-            _client = new MongoClient(GetMongoClientSettingsFromUserSecrets());
+            var conf = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", true)
+                .AddUserSecrets<DatabaseConnectionTests>()
+                .Build();
+            var section = conf.GetSection("DatabaseSettings");
+            if (section.Exists())
+            {
+                var settingsInFile = section.Get<DatabaseSettings>();
+                if (settingsInFile == null)
+                {
+                    throw new InvalidOperationException("No settings provided!");
+                } else
+                {
+                    _settings = settingsInFile;
+                }
+            }
+            _client = new MongoClient(ConvertSettings());
+        }
 
+        private MongoClientSettings ConvertSettings()
+        {
+            return new MongoClientSettings()
+            {
+                Credential = MongoCredential.CreateCredential(_settings.DatabaseName, _settings.Username, _settings.Password),
+                Server = new MongoServerAddress(_settings.Host, _settings.Port)
+            };
         }
 
         [TearDown]
         public void CleanDatabase()
         {
-            var db = _client.GetDatabase(_conf.GetSection("MongoDbName").Value);
+            var db = _client.GetDatabase(_settings.DatabaseName);
             var collections = db.ListCollectionNames().ToList().Select(c => 
             {
                 db.DropCollection(c);
@@ -36,29 +57,11 @@ namespace DatabaseConnectionTests
         }
 
         [Test]
-        public void ShouldGetCorrectMongoClientSettings()
-        {
-            var host = _conf.GetSection("MongoHost").Value;
-            var port = int.Parse(_conf.GetSection("MongoPort").Value);
-            var db = _conf.GetSection("MongoDbName").Value;
-            var user = _conf.GetSection("MongoDbUser").Value;
-            var pass = _conf.GetSection("MongoDbPassword").Value;
-
-            var settings = GetMongoClientSettingsFromUserSecrets();
-
-            Assert.That(settings.Server.Host, Is.EqualTo(host));
-            Assert.That(settings.Server.Port, Is.EqualTo(port));
-            Assert.That(settings.Credential.Identity.Source, Is.EqualTo(db));
-            Assert.That(settings.Credential.Identity.Username, Is.EqualTo(user));
-            Assert.That(settings.Credential.Evidence, Is.EqualTo(new PasswordEvidence(pass)));
-        }
-
-        [Test]
         public void ShouldGetDatabaseAndCreateAndGetAndDropCollection()
         {
             // todo: this isn't the test I intended to write!
 
-            var db = _client.GetDatabase(_conf.GetSection("MongoDbName").Value);
+            var db = _client.GetDatabase(_settings.DatabaseName);
             Assert.That(db, Is.Not.Null);
             var collectionName = "testcollection";
 
@@ -80,7 +83,7 @@ namespace DatabaseConnectionTests
             var dbc = GetDatabaseConnection();
             var insertResult = await dbc.InsertAsync(testPerson);
 
-            var db = _client.GetDatabase(_conf.GetSection("MongoDbName").Value);
+            var db = _client.GetDatabase(_settings.DatabaseName);
             var collection = db.GetCollection<Person>("people");
             var created = collection.AsQueryable().Where(p => p.Id == insertResult.Item1!.Value).FirstOrDefault();
             collection.DeleteOne(p => p.Id == insertResult.Item2.Id);
@@ -119,7 +122,7 @@ namespace DatabaseConnectionTests
             var dbc = GetDatabaseConnection();
             var insertResult = await dbc.InsertAsync(testEvent);
 
-            var db = _client.GetDatabase(_conf.GetSection("MongoDbName").Value);
+            var db = _client.GetDatabase(_settings.DatabaseName);
             var collection = db.GetCollection<Event>("events");
             var created = collection.AsQueryable().Where(p => p.Id == insertResult.Item1!.Value).FirstOrDefault();
             collection.DeleteOne(p => p.Id == insertResult.Item2.Id);
@@ -157,7 +160,7 @@ namespace DatabaseConnectionTests
             var dbc = GetDatabaseConnection();
             var insertResult = await dbc.InsertAsync(obj);
 
-            var db = _client.GetDatabase(_conf.GetSection("MongoDbName").Value);
+            var db = _client.GetDatabase(_settings.DatabaseName);
             var collection = db.GetCollection<Gig>("gigs");
             var created = collection.AsQueryable().Where(p => p.Id == insertResult.Item1!.Value).FirstOrDefault();
             collection.DeleteOne(p => p.Id == insertResult.Item1.Value);
@@ -174,28 +177,12 @@ namespace DatabaseConnectionTests
 
         private DatabaseConnection GetDatabaseConnection()
         {
-            if (!_conf.GetSection("MongoHost").Exists())
-            {
-                throw new InvalidOperationException("The configuration doesn't contain MongoHost property.");
-            }
-            var host = _conf.GetSection("MongoHost").Value;
-            var port = int.Parse(_conf.GetSection("MongoPort").Value);
-            var db = _conf.GetSection("MongoDbName").Value;
-            var user = _conf.GetSection("MongoDbUser").Value;
-            var pass = _conf.GetSection("MongoDbPassword").Value;
-            return new DatabaseConnection(host, port, user, pass, db);
-        }
-
-        private MongoClientSettings GetMongoClientSettingsFromUserSecrets()
-        {
-            var host = _conf.GetSection("MongoHost").Value;
-            var port = int.Parse(_conf.GetSection("MongoPort").Value);
-            var db = _conf.GetSection("MongoDbName").Value;
-            var user = _conf.GetSection("MongoDbUser").Value;
-            var pass = _conf.GetSection("MongoDbPassword").Value;
-
-            return DatabaseConnection.GetMongoClientSettings(
-                    host, port, user, pass, db);
+            return new DatabaseConnection(
+                _settings.Host,
+                _settings.Port,
+                _settings.Username,
+                _settings.Password,
+                _settings.DatabaseName);
         }
 
         private List<string> GetCollectionNames(IMongoDatabase db)
