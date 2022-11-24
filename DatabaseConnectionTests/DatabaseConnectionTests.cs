@@ -173,7 +173,10 @@ namespace DatabaseConnectionTests
 
         private DatabaseConnection GetDatabaseConnection()
         {
-
+            if (!_conf.GetSection("MongoHost").Exists())
+            {
+                throw new InvalidOperationException("The configuration doesn't contain MongoHost property.");
+            }
             var host = _conf.GetSection("MongoHost").Value;
             var port = int.Parse(_conf.GetSection("MongoPort").Value);
             var db = _conf.GetSection("MongoDbName").Value;
