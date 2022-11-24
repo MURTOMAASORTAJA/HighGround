@@ -24,21 +24,17 @@ jobs:
       run: dotnet restore
     - name: Build solution
       run: dotnet build --no-restore
-  tests:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Start MongoDB server
-        uses: supercharge/mongodb-github-action@1.8.0
-        with:
-          mongodb-version: latest
-          mongodb-port: 27017
-          mongodb-username: testuser
-          mongodb-password: TestPa5s!k
-          mongodb-replica-set: ugtest
-      - name: Wait / Sleep
-        uses: jakejarvis/wait-action@v0.1.1
-        with:
-          time: 5s
-      - name: Run tests
-        run: dotnet test --no-build --verbosity normal
+    - name: Start MongoDB server
+      uses: supercharge/mongodb-github-action@1.8.0
+      with:
+        mongodb-version: latest
+        mongodb-port: 27017
+        mongodb-username: testuser
+        mongodb-password: TestPa5s!k
+        mongodb-replica-set: ugtest
+    - name: Wait / Sleep
+      uses: jakejarvis/wait-action@v0.1.1
+      with:
+        time: 5s
+    - name: Run tests
+      run: dotnet test --no-build --verbosity normal
