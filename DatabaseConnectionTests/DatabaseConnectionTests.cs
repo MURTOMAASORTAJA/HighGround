@@ -1,4 +1,4 @@
-using Data.Models;
+﻿using Data.Models;
 using Data.Models.Event;
 using Data.Models.Work;
 using HighGround;
@@ -20,6 +20,17 @@ namespace DatabaseConnectionTests
             confBuilder.AddUserSecrets<DatabaseConnectionTests>();
             _conf = confBuilder.Build();
             _client = new MongoClient(GetMongoClientSettingsFromUserSecrets());
+        }
+
+        [TearDown]
+        public void CleanDatabase()
+        {
+            var db = _client.GetDatabase(_conf.GetSection("MongoDbName").Value);
+            var collections = db.ListCollectionNames().ToList().Select(c => 
+            {
+                db.DropCollection(c);
+                return true;
+            });
         }
 
         [Test]
