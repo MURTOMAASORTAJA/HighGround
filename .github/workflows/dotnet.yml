@@ -26,12 +26,12 @@ jobs:
       run: dotnet build --no-restore
     - name: MongoDB for GitHub Actions
     # You may pin to the exact commit or the version.
-      uses: timgchile/mongodb-github-action@1.7.4
+      uses: supercharge/mongodb-github-action@1.8.0
       with:
-        # MongoDB version to use (default "latest")
         mongodb-version: latest
         mongodb-port: 27017
-        mongodb-root-username: testuser
-        mongodb-root-password: TestPa5s!k
+        mongodb-username: testuser
+        mongodb-password: TestPa5s!k
+        mongodb-db: ugtest
     - name: Test
       run: dotnet test --no-build --verbosity normal
