@@ -34,6 +34,6 @@ jobs:
         mongodb-password: TestPa5s!k
         mongodb-db: ugtest
     - name: Create Mongodb user
-      run: mongo admin --eval "db.createUser({user:'testuser',pwd:'TestPa5s!k',roles:[{role:'readwrite',db:'ugtest'}]})"
+      run: mongo admin --ssl --eval "db.createUser({user:'testuser',pwd:'TestPa5s!k',roles:[{role:'readwrite',db:'ugtest'}]})"
     - name: Run tests
       run: dotnet test --no-build --verbosity normal
