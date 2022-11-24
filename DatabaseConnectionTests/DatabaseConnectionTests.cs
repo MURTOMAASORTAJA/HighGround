@@ -20,6 +20,7 @@ namespace DatabaseConnectionTests
             confBuilder.AddUserSecrets<DatabaseConnectionTests>();
             _conf = confBuilder.Build();
             _client = new MongoClient(GetMongoClientSettingsFromUserSecrets());
+
         }
 
         [TearDown]
@@ -172,6 +173,7 @@ namespace DatabaseConnectionTests
 
         private DatabaseConnection GetDatabaseConnection()
         {
+
             var host = _conf.GetSection("MongoHost").Value;
             var port = int.Parse(_conf.GetSection("MongoPort").Value);
             var db = _conf.GetSection("MongoDbName").Value;
