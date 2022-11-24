@@ -17,6 +17,7 @@ namespace DatabaseConnectionTests
         public void Setup()
         {
             var confBuilder = new ConfigurationBuilder();
+            confBuilder.AddJsonFile("appsettings.json", true);
             confBuilder.AddUserSecrets<DatabaseConnectionTests>();
             _conf = confBuilder.Build();
             _client = new MongoClient(GetMongoClientSettingsFromUserSecrets());
