@@ -31,7 +31,7 @@ jobs:
         mongodb-port: 27017
         #mongodb-username: testuser
         #mongodb-password: TestPa5s!k
-        mongodb-db: ugtest
+        mongodb-replica-set: ugtest
     - name: Wait / Sleep
       uses: jakejarvis/wait-action@v0.1.1
       with:
