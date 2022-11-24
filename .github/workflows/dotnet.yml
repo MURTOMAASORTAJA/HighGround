@@ -26,7 +26,7 @@ jobs:
       run: dotnet build --no-restore
     - name: MongoDB for GitHub Actions
     # You may pin to the exact commit or the version.
-      uses: timgchile/mongodb-github-action@latest
+      uses: supercharge/mongodb-github-action@1.8.0
       with:
         mongodb-version: latest
         mongodb-port: 27017
